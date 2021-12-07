@@ -1,0 +1,5 @@
+"STARTUP.obj",
+"slave2.obj",
+"delay.obj" 
+TO "slave2" 
+RAMSIZE(256) 
