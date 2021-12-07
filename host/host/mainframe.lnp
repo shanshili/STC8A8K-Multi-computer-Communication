@@ -1,0 +1,7 @@
+"STARTUP.obj",
+"delay.obj",
+"keyboard.obj",
+"segdistrans.obj",
+"main.obj" 
+TO "mainframe" 
+RAMSIZE(256) 

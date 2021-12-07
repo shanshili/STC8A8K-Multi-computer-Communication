@@ -1,0 +1,210 @@
+C51 COMPILER V9.00   MAIN                                                                  12/07/2021 14:53:22 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "8A8K.h"
+   2          #include "KEYBOARD.H"
+   3          #include "DELAY.H"
+   4          #include <INTRINS.H>
+   5          sbit rs485re = P3^7;
+   6          sbit rs485DE = P3^5;
+   7          
+   8          /*#include "lcd1602.h"
+   9          
+  10          mainframe 
+  11          串口1：9位数据,可变波特率
+  12          定时器1:16位自动重载 
+  13          串口1选择定时器1为波特率发生器
+  14          波特率：9600
+  15          RxD P3.0
+  16          TxD P3.1
+  17          */
+  18          /* 
+  19          TB8=0 send data
+  20          TB8=1 send address
+  21          */
+  22          /*
+  23          通过主机设置从机地址，设置从机的频率、占空比、流水灯花样。
+  24          主机通过键盘设置，LCD12864显示。
+  25          */
+  26          
+  27          #define TXendtestLED P00
+  28          #define TXendtestLEDADDR P02
+  29          #define TXendtestLEDDATA P03
+  30          #define uchar unsigned char //1byte
+  31          #define uin32 unsigned int  //4byte
+  32          unsigned int keyvalue = 0;
+  33            
+  34          unsigned char seg[] = {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90};
+  35          
+  36          void UartInit(void) //9600bps@24.000MHz
+  37          { 
+  38   1          P3M1 = 0X00;
+  39   1          P3M0 = 0X03;
+  40   1          P_SW1 = 0X00; //端口映射 3.0 3.1
+  41   1          SCON = 0xD0;  //串口控制：串口1，9位数据,可变波特率  1101 0000 允许串口接收数�
+             -�，处于地址帧筛选被禁止状态，接收到的信息直接进入SBUF，使RI=1
+  42   1          PCON &= 0x7F; //电源管理：波特率不倍速 PCON=0X00 SMOD=0
+  43   1          AUXR &= 0xFE; //选择波特率发生器：定时器1
+  44   1          AUXR |= 0x40; //定时器1时钟：Fosc,即1T T1x12=1
+  45   1          TMOD &= 0x0F; //定时器1模式配置：定时，16位自动重装方式
+  46   1          TL1 = 0x8F;   //设定定时低字节:
+  47   1          TH1 = 0xFD;   //设定定时高字节:  64911 65536-(SYSCLK/4/baud)
+  48   1          ET1 = 0;      //定时器1中断：禁止
+  49   1          TR1 = 1;      //启动定时器1
+  50   1      }
+  51          /*
+  52          void SEND_data(uchar *Buff)//发送数据函数
+  53          {
+  54              uchar i;
+C51 COMPILER V9.00   MAIN                                                                  12/07/2021 14:53:22 PAGE 2   
+
+  55              uchar lenth;
+  56              uchar check;
+  57              lenth=strlen(Buff); //计算数据长度
+  58              check=lenth;
+  59          
+  60              TI=0; 
+  61              TB8=0; //发送数据帧
+  62              SBUF=lenth;//发送数据长度
+  63              while(!TI);
+  64              TI=0;
+  65          
+  66              for(i=0;i<lenth;i++) //发送数据
+  67              {
+  68                  check=check^Buff[i];//^异或运算符
+  69                  TB8=0;
+  70                  SBUF=Buff[i];
+  71                  while(!TI);
+  72                  TI=0;
+  73              }
+  74          
+  75              TB8=0; //发送校验字节?
+  76              SBUF=check;
+  77              while(!TI);
+  78              TI=0;
+  79          }
+  80          
+  81          void ADDR_data(unsigned addr)//向指定从机地址发送数据
+  82          {
+  83              while(temp!=addr) //主机等待从机返回其地址作为应答信号
+  84              {
+  85                  TI=0; //发送从机地址
+  86                  TB8=1; //反复发送地址帧
+  87                  SBUF=addr;
+  88                  while(!TI);
+  89                  TI=0;
+  90                  RI=0;//反复接收，并比较是否为地址
+  91                  while(!RI);
+  92                  temp=SBUF;
+  93                  RI=0;
+  94              }
+  95              temp=_ERR_; //?
+  96              while(temp!=_SUCC_)//主机等待从机数据接收成功信号
+  97              {
+  98                  SEND_data(Buff);
+  99                  RI=0;
+ 100                  while(!RI);
+ 101                  temp=SBUF;
+ 102                  RI=0;
+ 103              }
+ 104          }
+ 105          */
+ 106          
+ 107          void TXdata(uchar addr, uchar *str)
+ 108          {
+ 109   1          TB8 = 1;
+ 110   1          TB8 = 1;
+ 111   1          SBUF = addr;
+ 112   1      //    LCD_dischar(6, 0, addr);
+ 113   1          while (!TI); //finish sending put 1 //问题：不确定对方是否接受到
+ 114   1          TI = 0;
+ 115   1        TXendtestLED = 1; //已发送
+ 116   1        while(SBUF != (addr+0x01)); //接收到从机响应
+C51 COMPILER V9.00   MAIN                                                                  12/07/2021 14:53:22 PAGE 3   
+
+ 117   1        Delay500ms();
+ 118   1        TXendtestLED = 0;//从机已接受
+ 119   1        Delay500ms();
+ 120   1          TB8 = 0;
+ 121   1          TB8 = 0;
+ 122   1          while (*str != '\0')
+ 123   1          {
+ 124   2              SBUF = (*str);
+ 125   2      //      LCD_disstr(7, 0, str);
+ 126   2              while (!TI);
+ 127   2              TI = 0;
+ 128   2              str++;
+ 129   2          }
+ 130   1          TXendtestLED = 1;  //已发送完
+ 131   1      //  LCD_disstr(0, 1, "finished");
+ 132   1          Delay500ms();
+ 133   1      
+ 134   1      }
+ 135          
+ 136          /*
+ 137          按键控制接收数据的从机：按键、中断
+ 138          显示发送的数据（转换为10进制）
+ 139          按键输入要发送的数据
+ 140          verup:
+ 141          测量数据，多级显示
+ 142          */
+ 143          void main()
+ 144          {
+ 145   1          uin32 addr;
+ 146   1          uchar str[] = {0};
+ 147   1          /*
+ 148   1          uin32 keyvalue = 0; //可在其他模块调用的全局变量的初始化//debug:该变量为多处调
+             -用的全局变量，注意不要再次声明和复制
+ 149   1          P2M1 = 0X00;
+ 150   1          P2M0 = 0X00; //因为要读取状态字 ，所以只能是弱上拉：准双向       
+ 151   1          P3M1 = 0X00;
+ 152   1          P3M0 = 0Xe0;
+ 153   1          LCD_init();
+ 154   1          LCD_disstr(0, 1,"opening");
+ 155   1          */
+ 156   1      
+ 157   1          Delay500ms();
+ 158   1          UartInit();
+ 159   1          rs485re = 0;
+ 160   1          rs485DE = 1;
+ 161   1          while (1)
+ 162   1          {
+ 163   2              TXendtestLED = 0;
+ 164   2              TXendtestLEDADDR = 0;
+ 165   2              TXendtestLEDDATA = 0;
+ 166   2      //        LCD_disstr(0, 1, "address");
+ 167   2              Keyboardmain(); //写成中断，随时可输入地址和数据
+ 168   2              addr = keyvalue;
+ 169   2              P2=seg[addr];
+ 170   2              TXendtestLEDADDR = 1;
+ 171   2      //        LCD_disstr(0, 1, "data");
+ 172   2              Keyboardmain();
+ 173   2              str[0] = keyvalue;
+ 174   2              P2=seg[*str];
+ 175   2              TXendtestLEDDATA = 1;
+ 176   2              Delay500ms();
+ 177   2              TXdata(addr, str); //直接调用函数名//查询法
+C51 COMPILER V9.00   MAIN                                                                  12/07/2021 14:53:22 PAGE 4   
+
+ 178   2          }
+ 179   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    209    ----
+   CONSTANT SIZE    =      1    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     12       7
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
