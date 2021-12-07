@@ -1,0 +1,104 @@
+C51 COMPILER V9.00   MAIN                                                                  12/02/2021 20:53:18 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: E:\keil\C51\BIN\C51.EXE main.c BROWSE DEBUG OBJECTEXTEND TABS(2)
+
+line level    source
+
+   1          #include "8A8K.h"
+   2          #include "delay.h"
+   3          #define rxINTtestled P00
+   4          
+   5          unsigned char dataa;
+   6          /*
+   7          中断x调用串口接收数据
+   8          P2显示数据
+   9          slave1 地址 0x01
+  10          从机1完成脉冲波形发生，频率、占空比可以设置；
+  11          */
+  12          
+  13          unsigned char seg[] = {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90};
+  14          
+  15          //接收测试数码管显示
+  16          void datatest()
+  17          {
+  18   1          dataa = SBUF;
+  19   1          P2 = seg[dataa];
+  20   1          Delay500ms();
+  21   1          Delay500ms();
+  22   1          Delay500ms(); 
+  23   1      }
+  24          //串口一中断：与地址相匹配的数据来后进入中断
+  25          void UART1()interrupt 4 using 1
+  26          //void UART1() __interrupt (4) __using (1) //串口1中断服务函数//触发条件：地址数据，且�
+             -��址相匹配（此时已将RI置1）
+  27          {
+  28   1          ES = 0; //关闭串口1中断
+  29   1          RI = 0; //不清零的话能否继续接收？？
+  30   1        //-------返回响应
+  31   1          SBUF = SADDR+0x01 ;
+  32   1          while(!TI);
+  33   1          TI = 0;
+  34   1        //--------
+  35   1          rxINTtestled = 1; //表示已准备好接受数据
+  36   1          SM2 = 0;//接收数据
+  37   1          Delay10ms();
+  38   1      
+  39   1          while(!RI); //接收完数据
+  40   1          rxINTtestled = 0;
+  41   1          RI = 0; //清除接收标志位
+  42   1          ES = 1; //重新开启串口1中断
+  43   1          SM2 = 1;//接收数据
+  44   1          datatest();
+  45   1      }
+  46          
+  47          //slave串口设置
+  48          void UartInit(void)   //9600bps@24.000MHz
+  49          {
+  50   1          P3M1 = 0X01;     //设置为高阻
+  51   1          P3M0 = 0X02;
+  52   1          P_SW1 = 0X00;    //端口映射3.0 3.1
+  53   1          SCON = 0xF0;    //串口控制：串口1，9位数据,可变波特率  1111 0000 允许串口接收数�
+             -�，筛选地址帧,RB8=1为地址帧，地址信息可以进入SBUF并使RI为1，进而在中断服务程序中再进�
+C51 COMPILER V9.00   MAIN                                                                  12/02/2021 20:53:18 PAGE 2   
+
+             -��地址号比较；
+  54   1          PCON &= 0x7F;   //电源管理：波特率不倍速 PCON=0X00 SMOD=0
+  55   1          AUXR &= 0xFE;   //选择波特率发生器：定时器1
+  56   1          AUXR |= 0x40;   //定时器1时钟：Fosc,即1T T1x12=1
+  57   1          TMOD &= 0x0F;   //定时器1模式配置：定时，16位自动重装方式
+  58   1          TL1 = 0x8F;   //设定定时低字节: 
+  59   1          TH1 = 0xFD;   //设定定时高字节:  64911 65536-(SYSCLK/4/baud)
+  60   1          ET1 = 0;    //定时器1中断：禁止
+  61   1          ES = 1;         //串口1中断: 开启
+  62   1          TR1 = 1;        //启动定时器1
+  63   1          EA = 1;         //中断 总开关
+  64   1          TR1 = 1;    //启动定时器1
+  65   1      }
+  66          
+  67          void main()
+  68          {
+  69   1          P2M0=0X00;
+  70   1          P2M1=0X00;
+  71   1          UartInit();
+  72   1          SADDR = 0X01;
+  73   1          SADEN = 0X0F;
+  74   1          rxINTtestled = 0;
+  75   1          while (1); 
+  76   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    138    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     11    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
