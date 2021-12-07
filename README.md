@@ -3,7 +3,7 @@ A function inside an interrupt cannot be broken by an interrupt
 
 Automatic address recognition, unable to recognize new addresses
 
-###  :fa-files-o:Design of multi-machine communication system
+###  Design of multi-machine communication system
 
 Requirements: single chip microcomputer as the core design of a multi - machine communication system.
 
