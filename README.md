@@ -1,7 +1,8 @@
 # STC8A8K-Multi-computer-Communication
-A function inside an interrupt cannot be broken by an interrupt
+>**PROBLEM**
+>A function inside an interrupt cannot be broken by an interrupt
 
-Automatic address recognition, unable to recognize new addresses
+>Automatic address recognition, unable to recognize new addresses
 
 ###  Design of multi-machine communication system
 
