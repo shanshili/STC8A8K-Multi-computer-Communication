@@ -1,35 +1,40 @@
+/*
+  【INFORMATION】：
+	mainframe 
+	串口1：9位数据,可变波特率
+	定时器1:16位自动重载 
+	串口1选择定时器1为波特率发生器
+	定时器0：KEY 4 中断
+	定时器2：KEY 8 中断
+	UART中断：判断从机选中响应，提示发送数据
+	波特率：9600
+	RxD P3.0
+	TxD P3.1
+	------------------------------
+	TB8=0 send datas
+	TB8=1 send address
+	【DUTY BOX】:
+	显示发送的数据（转换为10进制）
+	按键输入要发送的数据
+	通过主机设置从机地址，设置从机的频率、占空比、流水灯花样。
+	主机通过键盘设置，LCD12864显示。
+	【NOTE】:
+	开发板限制，无法使用LCD显示
+*/
 #include "8A8K.h"
 #include "KEYBOARD.H"
 #include "DELAY.H"
 #include <INTRINS.H>
-sbit rs485re = P3^7;
-sbit rs485DE = P3^5;
-
-/*#include "lcd1602.h"
-
-mainframe 
-串口1：9位数据,可变波特率
-定时器1:16位自动重载 
-串口1选择定时器1为波特率发生器
-波特率：9600
-RxD P3.0
-TxD P3.1
-*/
-/* 
-TB8=0 send data
-TB8=1 send address
-*/
-/*
-通过主机设置从机地址，设置从机的频率、占空比、流水灯花样。
-主机通过键盘设置，LCD12864显示。
-*/
-
+//#include "lcd1602.h"
 #define TXendtestLED P00
 #define TXendtestLEDADDR P02
 #define TXendtestLEDDATA P03
 #define uchar unsigned char //1byte
 #define uin32 unsigned int  //4byte
+sbit rs485re = P3^7;
+sbit rs485DE = P3^5;
 unsigned int keyvalue = 0;
+
 	
 unsigned char seg[] = {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90};
 
@@ -112,11 +117,11 @@ void TXdata(uchar addr, uchar *str)
 //    LCD_dischar(6, 0, addr);
     while (!TI); //finish sending put 1 //问题：不确定对方是否接受到
     TI = 0;
-	TXendtestLED = 1; //已发送
-	while(SBUF != (addr+0x01)); //接收到从机响应
-	Delay500ms();
-	TXendtestLED = 0;//从机已接受
-	Delay500ms();
+		TXendtestLED = 1; //已发送
+		while(SBUF != (addr+0x01)); //接收到从机响应
+		Delay500ms();
+		TXendtestLED = 0;//从机已接受
+		Delay500ms();
     TB8 = 0;
 	  TB8 = 0;
     while (*str != '\0')
@@ -130,16 +135,7 @@ void TXdata(uchar addr, uchar *str)
     TXendtestLED = 1;  //已发送完
 //  LCD_disstr(0, 1, "finished");
     Delay500ms();
-
 }
-
-/*
-按键控制接收数据的从机：按键、中断
-显示发送的数据（转换为10进制）
-按键输入要发送的数据
-verup:
-测量数据，多级显示
-*/
 void main()
 {
     uin32 addr;
@@ -163,12 +159,12 @@ void main()
         TXendtestLED = 0;
         TXendtestLEDADDR = 0;
         TXendtestLEDDATA = 0;
-//        LCD_disstr(0, 1, "address");
+//      LCD_disstr(0, 1, "address");
         Keyboardmain(); //写成中断，随时可输入地址和数据
         addr = keyvalue;
 		  	P2=seg[addr];
         TXendtestLEDADDR = 1;
-//        LCD_disstr(0, 1, "data");
+//      sLCD_disstr(0, 1, "data");
         Keyboardmain();
         str[0] = keyvalue;
 			  P2=seg[*str];

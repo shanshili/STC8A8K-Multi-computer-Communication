@@ -1,16 +1,21 @@
+/*
+【DEBUG LOG】
+ *21/12/12* Fixed the value of return0 and set the decision value to 16
+*/
 #include "KEYBOARD.H"
 #include "DELAY.H"
 #include "8A8K.h"
 //#include "lcd1602.h"
 
 #define keyboard P1
-#define pressdtestled P01
+#define pressdtestled P00
+
 /*   ——————————————————
      | 0   1   2   3
      | 4   5   6   7 
-	 | 8   9   10  11
-	 | 12  13  14  15
- 	 ——————————————————
+	   | 8   9   10  11
+	   | 12  13  14  15
+ 	   ——————————————————
 */
 /*
 P1 矩阵键盘  c1-p1.7   r4-p1.0
@@ -22,7 +27,7 @@ pressdtestledtestled press down测试灯
 
 unsigned int Check_Keydown()
 {
-	unsigned int KeyValue=0;
+	unsigned int KeyValue=16;
 	keyboard=0xf0;
 	if(keyboard!=0xf0)//如果按键按下
 	{
@@ -54,10 +59,10 @@ unsigned int Check_Keydown()
 		}
 		else  //否则认为是信号干扰导致
 		{
-			return 0;  //认为没有按键按下
+			return 16;  //认为没有按键按下
 		}
 	}
-	return 0;  //如果没有按键按下返回零
+	return 16;  //如果没有按键按下返回零
 }
 
 void Keyboardmain()
@@ -67,14 +72,13 @@ void Keyboardmain()
 	{
 		pressdtestled = 0;
 		keyvalue=Check_Keydown(); 
-		if (keyvalue!=0)//按下非零的按键才触发testled
+		if (keyvalue != 16 )//按下非20的按键才触发testled
 		{
-			pressdtestled = 1;
-//		LCD_dischar(0, 0, keyvalue);
-			Delay500ms();
-			break;
+				pressdtestled = 1;
+				Delay500ms();
+				break;
 		}
-		unit=keyvalue%10; //个位
-		decade=keyvalue/10; //十位
+//		decade=keyvalue/10;
+//		unit=keyvalue%10;
 	}
 }
