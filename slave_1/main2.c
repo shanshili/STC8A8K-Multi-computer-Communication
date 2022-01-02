@@ -11,13 +11,14 @@
 	【DEBUG NOTE】:
 	1、从机串口通信接收存在漏洞
 	【UPDATE LOG】：
+	*21/12/9* 更新为main2.c:收发方式修正,配合从机main4版本使用
 */
 
 #include "8A8K.h"
 #include "delay.h"
 #include "FrequencyDutycycle.H"
 #define rxINTtestled P00
-unsigned char dataa,flag=0;
+unsigned char dataa,flag=0,addr=0x01;
 unsigned char seg[] = {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90};
 unsigned char InpuDatSto[12]=0,InpDatNum=0;
 
@@ -38,31 +39,29 @@ void datatest()
 	  Delay500ms();
 	  Delay500ms(); 
 }
-//串口一中断：与地址相匹配的数据来后进入中断
-void UART1()interrupt 4 using 1
-//void UART1() __interrupt (4) __using (1) //串口1中断服务函数//触发条件：地址数据，且地址相匹配（此时已将RI置1）
+
+//串口一中断：接收完毕即进入中断
+void UART1() interrupt 4 using 1
 {
     ES = 0; //关闭串口1中断
-    RI = 0; //不清零的话能否继续接收？？
-	//-------返回响应
-	  SBUF = SADDR+0x01 ;
-	  while(!TI);
-	  TI = 0;
-	//--------
-    rxINTtestled = 1; //表示已准备好接受数据
-	  if( RB8 == 0 )
+    if( RB8 == 1 )//为地址帧，判断，返回响应
 		{
-			SM2 = 0;//接收数据   
-			Delay10ms();
-			while(!RI); //接收完数据
-			rxINTtestled = 0;
-			datatest();
-			RI = 0; //清除接收标志位
+			  if( SBUF == 0X01 )
+				{													
+						SBUF = addr+0x01 ;
+						while(!TI);
+						TI = 0;
+					  SM2 = 0;//开始接收数据 
+						rxINTtestled = 1; //表示已准备好接受数据
+				}
 		}
-		if( RB8 == 1 )
+	  if( RB8 == 0 )//为数据帧
 		{
-			SM2 = 1;//接收地址
+				while(!RI); //确认接收完数据
+				rxINTtestled = 0;
+				datatest();
 		}
+		RI = 0; //清除接收标志位
     ES = 1; //重新开启串口1中断
 }
 
@@ -91,8 +90,8 @@ void main()
 		P2M0=0X00;
 		P2M1=0X00;
     UartInit();
-    SADDR = 0X01;
-    SADEN = 0X0F;
+//    SADDR = 0X01;
+//    SADEN = 0X0F;
 	  rxINTtestled = 0;
     while (1); 
 }

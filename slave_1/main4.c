@@ -11,33 +11,21 @@
 	【DEBUG NOTE】:
 	1、从机串口通信接收存在漏洞
 	【UPDATE LOG】：
+	*21/12/9* 更新为main2.c:收发方式修正,配合从机main4版本使用
+	*21/12/12*更新为main4.c:收发方式修正为可接收长度和多个数据，且接收停止连接位
+						配合主机main4_2版本使用
 */
 
 #include "8A8K.h"
 #include "delay.h"
 #include "FrequencyDutycycle.H"
 #define rxINTtestled P00
-unsigned char dataa,flag=0;
-unsigned char seg[] = {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90};
-unsigned char InpuDatSto[12]=0,InpDatNum=0;
+#define segdisplay P2
+unsigned char dataa,flag=0,length=0,i,j;
+unsigned char seg[10] = {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90};
+unsigned int s,table[]=0;
 
-//输入数据存储
-void InputDataStore(unsigned char indat)
-{
-	  InpuDatSto[InpDatNum]=indat;
-		InpDatNum++;
-}
 
-//接收测试数码管显示
-void datatest()
-{
-    dataa = SBUF;
-		P2 = seg[dataa];
-	  InputDataStore(dataa);
-	  Delay500ms();
-	  Delay500ms();
-	  Delay500ms(); 
-}
 //串口一中断：与地址相匹配的数据来后进入中断
 void UART1()interrupt 4 using 1
 //void UART1() __interrupt (4) __using (1) //串口1中断服务函数//触发条件：地址数据，且地址相匹配（此时已将RI置1）
@@ -49,19 +37,28 @@ void UART1()interrupt 4 using 1
 	  while(!TI);
 	  TI = 0;
 	//--------
+    SM2 = 0;//接收数据   
     rxINTtestled = 1; //表示已准备好接受数据
-	  if( RB8 == 0 )
-		{
-			SM2 = 0;//接收数据   
-			Delay10ms();
-			while(!RI); //接收完数据
-			rxINTtestled = 0;
-			datatest();
-			RI = 0; //清除接收标志位
-		}
-		if( RB8 == 1 )
-		{
-			SM2 = 1;//接收地址
+	//-------Receive the length
+	  while(!RI);
+	  RI = 0;
+	  length = SBUF;
+	  SBUF = length;
+	  while(!TI);
+	  TI = 0;
+	//Receive datas
+	  for(i=0;i<=length;i++)
+	  {
+		    while(!RI); //接收完数据
+			  table[i] = SBUF;
+				RI = 0; //清除接收标志位
+			  SBUF = table[i];
+			  while(!TI);
+			  TI = 0;
+			  if( table[i] == 0XFF)
+				{
+					    SM2 = 1;//断开连接
+				}
 		}
     ES = 1; //重新开启串口1中断
 }
@@ -94,5 +91,18 @@ void main()
     SADDR = 0X01;
     SADEN = 0X0F;
 	  rxINTtestled = 0;
-    while (1); 
+    while (1)
+		{ 
+			  if(length != 0)
+				{
+						for(j=0;j<length;j++)
+						{
+							  s = table[j];
+								segdisplay = seg[s];
+        				rxINTtestled = 0;
+								Delay500ms();
+								Delay500ms();			  
+						}
+				}
+		} 
 }
