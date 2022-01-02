@@ -88,13 +88,13 @@ Development board limitation, unable to use LCD display
 
 >**NEWEST PROBLEM:**
 
->1.Data type in operation, multi-bit transmission
+*1.Data type in operation, multi-bit transmission
 
 >**PROBLEM NOTE:**
 
->1.A function inside an interrupt cannot be broken by an interrupt
+*1.A function inside an interrupt cannot be broken by an interrupt
 
->2.Automatic address recognition, unable to recognize new addresses
+*2.Automatic address recognition, unable to recognize new addresses
 
 ---------------------
 
