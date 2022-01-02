@@ -93,6 +93,7 @@ Development board limitation, unable to use LCD display
 >**PROBLEM NOTE:**
 
 1.A function inside an interrupt cannot be broken by an interrupt
+
 2.Automatic address recognition, unable to recognize new addresses
 
 ---------------------
