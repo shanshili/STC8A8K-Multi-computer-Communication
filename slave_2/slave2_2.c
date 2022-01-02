@@ -1,78 +1,81 @@
+/*
+  【DUTY BOX】：
+	slave2 地址 0x02
+	从机2完成流水灯
+	P2显示数据
+	P17为指示灯
+	中断x调用串口接收数据
+	【DEBUG NOTE】:
+	1、保证中断里没有循环，可以尽快退出，将其他操作放入主程序，使用【FLAG】作为中断运行过标志
+	2、已修正“循环不能打断”问题，放弃循环，在主程序加入死循环，以【FLAG】为条件，间接实现循环
+	【UPDATE LOG】：
+	21/12/9 slave2.c替换为slave2_2.c，解决循环无法被打断的问题，及瀑布流水灯bug
+*/
 #include "8A8K.h"
 #include "delay.h"
 #include "intrins.h"
+#include <math.h>
 #define rxINTtestled P17
 #define LEDPLAY P2
-
 unsigned char dataa,led,flow,flag=0;
-/*
-中断x调用串口接收数据
-P2显示数据
-slave2 地址 0x02
-从机2完成流水灯
-*/
-
 unsigned char seg[] = {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90};
 
 //接收测试数码管显示
 void datatest()
 {
+	  unsigned char ledcycle;
 	  dataa = SBUF;
 		switch(dataa)
 		{
 			case(0x01): //循环右移
 					led = 0x01;
-					while(1)
+					for(ledcycle=0;ledcycle<7;ledcycle++)
 					{
 							led = _cror_(led,1);
 							LEDPLAY = led ;
 							Delay500ms();
 					}
+					break;
 			case(0x02)://循环左移
-					led = 0x01;
-					while(1)
+					led = 0x03;
+					for(ledcycle=0;ledcycle<7;ledcycle++)
 					{
 							led = _crol_(led,1);
 							LEDPLAY = led ;
 							Delay500ms();
 					}
+					break;
 			case(0x03)://1100 1100
-			while(1)
-			{
 					LEDPLAY = 0xcc;
 					Delay500ms();
 					LEDPLAY = 0X33;
 				  Delay500ms();
-			}
+					break;
 			case(0x04):  //1010 1010
-			while(1)
-			{
 					LEDPLAY = 0x55;
 					Delay500ms();
 					LEDPLAY = 0XAA;
 				  Delay500ms();
-			}
+			    break;
 			case(0x05): //瀑布
-			while(1)
-			{
-					led = 0x01;
-					for(flow=0;flow<9;flow++)
+					led = 0xff;
+					for(flow=0;flow<8;flow++)
 					{
-						led = led + (2*flow);
+						led = 0xff - (pow(2,flow)-1);
 						LEDPLAY = led;
 						Delay10ms();Delay10ms();Delay10ms();Delay10ms();Delay10ms();Delay10ms();
+						Delay10ms();Delay10ms();Delay10ms();Delay10ms();Delay10ms();Delay10ms();
+						Delay10ms();Delay10ms();Delay10ms();Delay10ms();Delay10ms();Delay10ms();
 					}
-			}
+					break;
 			case(0x06):
-			while(1)
-			{  
 					LEDPLAY = 0x00;
 					Delay500ms();
 					Delay500ms();
-			}
-			default:LEDPLAY = 0X00;Delay500ms();
+					break;
+			default:LEDPLAY = 0Xff;Delay500ms();
 		}
-		P2 = dataa;
+	//	P2 = dataa;
 }
 //串口一中断：与地址相匹配的数据来后进入中断
 void UART1()interrupt 4 using 1
