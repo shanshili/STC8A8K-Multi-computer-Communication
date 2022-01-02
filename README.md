@@ -1,6 +1,6 @@
 # STC8A8K-Multi-computer-Communication V2.0
 
-###  NEWEST INFORMATION
+##  NEWEST INFORMATION
 
 **NAME**:mainframe
 
@@ -28,7 +28,7 @@ TB8=1 send address
 
 ---------------------
 
-###  NEWEST INFORMATION
+##  TASK SETTING
 
 Through the host set slave machine address, set slave machine frequency, duty cycle, water lamp pattern.
 
@@ -50,7 +50,7 @@ Second input duty cycle renge 100 to 0 3bit
 
 ---------------------
 
-###  NEWEST INFORMATION
+##  DEVELOPMENT LOG
 
 Development board limitation, unable to use LCD display
 
@@ -88,13 +88,12 @@ Development board limitation, unable to use LCD display
 
 >**NEWEST PROBLEM:**
 
-*1.Data type in operation, multi-bit transmission
+1.Data type in operation, multi-bit transmission
 
 >**PROBLEM NOTE:**
 
-*1.A function inside an interrupt cannot be broken by an interrupt
-
-*2.Automatic address recognition, unable to recognize new addresses
+1.A function inside an interrupt cannot be broken by an interrupt
+2.Automatic address recognition, unable to recognize new addresses
 
 ---------------------
 
