@@ -1,6 +1,6 @@
 # STC8A8K-Multi-computer-Communication V2.0
 
-###  *NEWEST INFORMATION
+###  NEWEST INFORMATION
 
 **NAME**:mainframe
 
@@ -28,7 +28,7 @@ TB8=1 send address
 
 ---------------------
 
-###  *NEWEST INFORMATION
+###  NEWEST INFORMATION
 
 Through the host set slave machine address, set slave machine frequency, duty cycle, water lamp pattern.
 
@@ -50,18 +50,19 @@ Second input duty cycle renge 100 to 0 3bit
 
 ---------------------
 
-###  *NEWEST INFORMATION
+###  NEWEST INFORMATION
 
 Development board limitation, unable to use LCD display
 
 *21/12/9* 
-Triggers external interrupts with timer interrupts; Use serial port interrupt to trigger data transmission
-Interrupt trigger: TI/RI, that is, after sending, receiving can enter the interrupt program
-Updated to main2. C
+
+>Triggers external interrupts with timer interrupts; Use serial port interrupt to trigger data transmission
+>Interrupt trigger: TI/RI, that is, after sending, receiving can enter the interrupt program
+>Updated to main2. C
 
 *21/12/11* 
-Interrupt is not suitable to call the function, put the serial port send function to the main function, but then interrupt firing is difficult
-Updated to main3. C
+>Interrupt is not suitable to call the function, put the serial port send function to the main function, but then interrupt firing is difficult
+>Updated to main3. C
 
 *21/12/12* 
 There is no need to use interrupts, delete interrupts, rewrite protocols,
